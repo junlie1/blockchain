@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa Block</title>
+</head>
+<body>
+    <h1>Chỉnh sửa Block {{ block.index }}</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        <h3>Thông tin Block</h3>
+        <label for="previous_hash">Previous Hash:</label>
+        <input type="text" id="previous_hash" name="previous_hash" value="{{ block.previous_hash }}" required><br>
+
+        <label for="nonce">Nonce:</label>
+        <input type="number" id="nonce" name="nonce" value="{{ block.nonce }}" required><br>
+
+        <h3>Giao dịch liên quan</h3>
+        <ul>
+            {% for transaction in transactions %}
+            <li>
+                <input type="hidden" name="transaction_id" value="{{ transaction.transaction_id }}">
+                <label for="student_id_{{ transaction.transaction_id }}">Mã sinh viên:</label>
+                <input type="text" id="student_id_{{ transaction.transaction_id }}" name="student_id" value="{{ transaction.student_id }}" required><br>
+
+                <label for="course_{{ transaction.transaction_id }}">Môn học:</label>
+                <input type="text" id="course_{{ transaction.transaction_id }}" name="course" value="{{ transaction.course }}" required><br>
+
+                <label for="score_{{ transaction.transaction_id }}">Điểm số:</label>
+                <input type="number" step="0.1" id="score_{{ transaction.transaction_id }}" name="score" value="{{ transaction.score }}" required><br>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <button type="submit">Lưu</button>
+    </form>
+
+    <a href="{% url 'home' %}">Quay lại</a>
+</body>
+</html>

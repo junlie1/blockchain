@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Kiểm tra chuỗi khối</title>
+    <meta name="description" content="Trang kiểm tra tính hợp lệ của chuỗi khối.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css"> <!-- Đường dẫn file CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .status {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .status-green {
+            color: green;
+        }
+        .status-red {
+            color: red;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        li {
+            background: #ffffff;
+            margin: 10px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        li h3 {
+            margin: 0 0 10px;
+            color: #3498db;
+        }
+        li p {
+            margin: 5px 0;
+        }
+        li span {
+            font-weight: bold;
+        }
+        li ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        li ul li {
+            list-style-type: disc;
+        }
+        a {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        a:hover {
+            background-color: #2980b9;
+        }
+        .link-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kiểm tra chuỗi khối</h1>
+    <div class="status">
+        {% if is_valid %}
+        <p class="status-green">Blockchain hợp lệ!</p>
+        {% else %}
+        <p class="status-red">Blockchain không hợp lệ!</p>
+        {% endif %}
+    </div>
+
+    <h2>Kết quả kiểm tra từng khối:</h2>
+    <ul>
+        {% for result in validation_results %}
+        <li>
+            <h3>Block {{ result.block.index }}</h3>
+            <p><strong>Hash:</strong> {{ result.block.hash }}</p>
+            <p><strong>Previous Hash:</strong> {{ result.block.previous_hash }}</p>
+            <p><strong>Merkle Root:</strong> {{ result.block.merkle_root }}</p>
+            <p>
+                <strong>Trạng thái:</strong>
+                {% if result.valid %}
+                <span style="color: green;">Hợp lệ</span>
+                {% else %}
+                <span style="color: red;">Không hợp lệ</span>
+                {% endif %}
+            </p>
+            {% if not result.valid %}
+            <p><strong>Lỗi:</strong></p>
+            <ul>
+                {% for error in result.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="link-container">
+        <a href="{% url 'home' %}">Quay lại trang chính</a>
+    </div>
+</body>
+</html>

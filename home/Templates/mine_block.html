@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Khai thác khối mới</title>
+    <meta name="description" content="Trang khai thác khối mới cho blockchain.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css"> <!-- Đường dẫn file CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .message {
+            text-align: center;
+            margin: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .message-error {
+            color: red;
+        }
+        .block-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .block-container p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .block-container strong {
+            font-weight: bold;
+        }
+        .link-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        a {
+            display: inline-block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            text-decoration: none;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+        a:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Khai thác khối mới</h1>
+
+    {% if error %}
+    <div class="message message-error">
+        <p>{{ error }}</p>
+    </div>
+    <div class="link-container">
+        <a href="{% url 'home' %}">Quay lại</a>
+    </div>
+    {% else %}
+    <h2>Khối mới đã được tạo</h2>
+    <div class="block-container">
+        <p><strong>Index:</strong> {{ block.index }}</p>
+        <p><strong>Hash:</strong> {{ block.hash }}</p>
+        <p><strong>Previous Hash:</strong> {{ block.previous_hash }}</p>
+        <p><strong>Merkle Root:</strong> {{ block.merkle_root }}</p>
+    </div>
+    <div class="link-container">
+        <a href="{% url 'home' %}">Quay lại</a>
+    </div>
+    {% endif %}
+</body>
+</html>
