@@ -6,7 +6,7 @@
     <title>Kiểm tra chuỗi khối</title>
     <meta name="description" content="Trang kiểm tra tính hợp lệ của chuỗi khối.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="styles.css"> <!-- Đường dẫn file CSS -->
+    <link rel="stylesheet" href="styles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -85,17 +85,37 @@
             text-align: center;
             margin: 20px 0;
         }
+        .transaction-error {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <h1>Kiểm tra chuỗi khối</h1>
     <div class="status">
         {% if is_valid %}
-        <p class="status-green">Blockchain hợp lệ!</p>
+            <p class="status-green">Blockchain hợp lệ!</p>
         {% else %}
-        <p class="status-red">Blockchain không hợp lệ!</p>
+            <p class="status-red">Blockchain không hợp lệ!</p>
         {% endif %}
     </div>
+    
+    {% if not is_valid %}
+        <h2>Các khối bị thay đổi:</h2>
+        <ul>
+            {% for block in invalid_blocks %}
+            <li>
+                <h3>Block {{ block.index }}</h3>
+                <p><strong>Hash hiện tại:</strong> {{ block.hash }}</p>
+                <p><strong>Hash tính lại:</strong> {{ block.calculateHash }}</p>
+                <p><strong>Merkle Root hiện tại:</strong> {{ block.merkle_root }}</p>
+                <p><strong>Merkle Root tính lại:</strong> {{ block.calculateMerkleRoot }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
 
     <h2>Kết quả kiểm tra từng khối:</h2>
     <ul>
@@ -118,6 +138,23 @@
             <ul>
                 {% for error in result.errors %}
                 <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <!-- Hiển thị giao dịch bất thường -->
+            {% if result.invalid_transactions %}
+            <p class="transaction-error">Giao dịch bất thường:</p>
+            <ul>
+                {% for tx in result.invalid_transactions %}
+                <li>
+                    Transaction ID: {{ tx.transaction_id }}<br>
+                    Mã sinh viên: {{ tx.student_id }}<br>
+                    Môn học: {{ tx.course }}<br>
+                    Điểm số: {{ tx.score }}<br>
+                    <strong>Hash cũ:</strong> {{ tx.original_hash }}<br>
+                    <strong>Hash mới:</strong> {{ tx.new_hash }}
+                </li>
                 {% endfor %}
             </ul>
             {% endif %}

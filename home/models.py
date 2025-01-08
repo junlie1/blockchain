@@ -16,7 +16,8 @@ class Transaction(models.Model):
     course = models.CharField(max_length=100)
     score = models.FloatField()
     timestamp = models.FloatField(default=time.time)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")  # Trạng thái giao dịch
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    hash = models.CharField(max_length=64, blank=True, null=True)
 
     def toDict(self):
         return {
@@ -26,12 +27,16 @@ class Transaction(models.Model):
             "score": self.score,
             "timestamp": self.timestamp,
             "status": self.status,
+            "hash": self.hash,
         }
 
     def __str__(self):
         return f"{self.student_id} - {self.course} - {self.score}"
-
-
+    
+    def calculateHash(self):
+        # Tính toán lại hash của giao dịch
+        transaction_string = f"{self.student_id}{self.course}{self.score}{self.timestamp}{self.status}"
+        return hashlib.sha256(transaction_string.encode()).hexdigest()
 
 
 class Block(models.Model):
@@ -44,36 +49,46 @@ class Block(models.Model):
     transactions = models.ManyToManyField(Transaction)
 
     def calculateHash(self):
-        # Đảm bảo các thành phần giống Python thuần
-        block_data = (f"{self.index}"
-                        f"{self.merkle_root}"
-                        f"{self.timestamp}" 
-                        f"{self.previous_hash}"
-                        f"{self.nonce}")
+        # Tính toán lại hash của block
+        block_data = (
+            f"{self.index}"
+            f"{self.previous_hash}"
+            f"{self.timestamp}"
+            f"{self.nonce}"
+            f"{self.merkle_root}"
+        )
         return hashlib.sha256(block_data.encode()).hexdigest()
 
     def calculateMerkleRoot(self):
+        # Tính Merkle Root từ danh sách giao dịch
         hashes = []
         for tx in self.transactions.all():
+            # Chuyển giao dịch thành dictionary
             transaction_dict = tx.toDict()
+            # Chuyển dictionary thành chuỗi
             transaction_string = str(transaction_dict)
+            # Mã hóa chuỗi thành bytes
             transaction_bytes = transaction_string.encode()
+            # Tính hash
             transaction_hash = hashlib.sha256(transaction_bytes).hexdigest()
+            # Thêm hash vào danh sách
             hashes.append(transaction_hash)
 
         while len(hashes) > 1:
+            # Nếu số lượng lẻ, sao chép hash cuối
             if len(hashes) % 2 == 1:
                 hashes.append(hashes[-1])
+            # Ghép đôi và tạo mã băm mới
             new_level = []
             for i in range(0, len(hashes), 2):
                 combined = hashes[i] + hashes[i + 1]
                 new_hash = hashlib.sha256(combined.encode()).hexdigest()
                 new_level.append(new_hash)
             hashes = new_level
-
+        # Nếu không có giao dịch, trả về "0"
         return hashes[0] if hashes else "0"
 
-    
+
 class Blockchain:
     def __init__(self):
         self.difficulty = 3  # Độ khó để khai thác khối mới
@@ -142,8 +157,9 @@ class Blockchain:
 
 
     def is_chain_valid(self):
-        # Lấy tất cả các khối theo thứ tự
         blocks = Block.objects.all().order_by('index')
+        invalid_blocks = []  # Danh sách các block bị thay đổi
+
         for i in range(1, len(blocks)):
             current_block = blocks[i]
             previous_block = blocks[i - 1]
@@ -151,19 +167,19 @@ class Blockchain:
             # Kiểm tra hash của khối hiện tại
             if current_block.hash != current_block.calculateHash():
                 print(f"Block {current_block.index} đã bị sửa đổi! Hash không khớp.")
-                return False
+                invalid_blocks.append(current_block)
 
             # Kiểm tra liên kết với khối trước
             if current_block.previous_hash != previous_block.hash:
                 print(f"Block {current_block.index} không khớp với hash của khối trước!")
-                return False
+                invalid_blocks.append(current_block)
 
             # Kiểm tra Merkle Root
             calculated_merkle_root = current_block.calculateMerkleRoot()
             if current_block.merkle_root != calculated_merkle_root:
                 print(f"Block {current_block.index} có Merkle Root không khớp!")
-                return False
+                invalid_blocks.append(current_block)
 
-        print("Blockchain hợp lệ.")
-        return True
-
+        if invalid_blocks:
+            return False, invalid_blocks
+        return True, []

@@ -84,8 +84,8 @@
                 <img src="{% static 'icon_edit.png' %}" alt="Sửa" style="width: 20px; height: 20px;">
             </a>            
             <h3>Block {{ block.index }}</h3>
-            <p><strong>Hash:</strong> {{ block.hash }}</p>
             <p><strong>Previous Hash:</strong> {{ block.previous_hash }}</p>
+            <p><strong>Hash:</strong> {{ block.hash }}</p>
         </li>
         {% endfor %}
     </ul>   

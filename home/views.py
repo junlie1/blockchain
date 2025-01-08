@@ -5,6 +5,7 @@ from django.utils.timezone import now
 from datetime import datetime
 import time
 from django.shortcuts import get_object_or_404
+import hashlib
 
 blockchain = Blockchain() 
 
@@ -51,11 +52,20 @@ def edit_block(request, index):
 
         for tx_id, student_id, course, score in zip(transaction_ids, student_ids, courses, scores):
             transaction = Transaction.objects.get(transaction_id=tx_id)
+            original_hash = transaction.hash  # Lưu lại hash ban đầu để phát hiện thay đổi
             transaction.student_id = student_id
             transaction.course = course
             transaction.score = float(score)
+
+            # Tính lại hash của giao dịch sau khi thay đổi
+            transaction.hash = transaction.calculateHash()  # Tính lại hash cho giao dịch
             transaction.save()
             print(f"Transaction Updated: ID {tx_id}, Student ID {student_id}, Course {course}, Score {score}")  # Log giao dịch cập nhật
+
+        # Tính lại hash và Merkle Root của block sau khi sửa đổi giao dịch
+        block.hash = block.calculateHash()
+        block.merkle_root = block.calculateMerkleRoot()  # Cập nhật Merkle Root
+        block.save()
 
         return redirect('home')
 
@@ -64,6 +74,8 @@ def edit_block(request, index):
     print(f"Transactions Linked to Block {block.index}: {list(transactions)}")  # Log giao dịch liên kết với khối
 
     return render(request, "edit_block.html", {"block": block, "transactions": transactions})
+
+
 
 
 
@@ -89,7 +101,7 @@ def mine_block(request):
     # Gắn giao dịch vào Block
     new_block.transactions.set(pending_transactions)
     new_block.merkle_root = new_block.calculateMerkleRoot()
-    new_block.hash = new_block.calculateHash()
+    new_block.hash = new_block.calculateHash()  # Tính lại hash của block sau khi thêm giao dịch
     new_block.save()
 
     # Cập nhật trạng thái giao dịch
@@ -97,7 +109,6 @@ def mine_block(request):
     print(f"Transactions Linked to Block {new_block.index}: {list(new_block.transactions.all())}")
 
     return render(request, "mine_block.html", {"block": new_block})
-
 
 
 
@@ -112,16 +123,16 @@ def validate_chain(request):
         previous_block = blocks[i - 1] if i > 0 else None
 
         # Tính lại hash và Merkle Root
-        # recalculated_hash = current_block.calculateHash()
-        # recalculated_merkle_root = current_block.calculateMerkleRoot()
+        recalculated_hash = current_block.calculateHash()
+        recalculated_merkle_root = current_block.calculateMerkleRoot()
 
         # Kiểm tra khối hiện tại
         block_valid = True
         errors = []
 
-        # if current_block.hash != recalculated_hash:
-        #     block_valid = False
-        #     errors.append("Hash không khớp.")
+        if current_block.hash != recalculated_hash:
+            block_valid = False
+            errors.append("Hash không khớp.")
         if previous_block and current_block.previous_hash != previous_block.hash:
             block_valid = False
             errors.append("Previous hash không khớp.")
@@ -136,8 +147,8 @@ def validate_chain(request):
             "block": current_block,
             "valid": block_valid,
             "errors": errors,
-            # "recalculated_hash": recalculated_hash,
-            # "recalculated_merkle_root": recalculated_merkle_root,
+            "recalculated_hash": recalculated_hash,
+            "recalculated_merkle_root": recalculated_merkle_root,
         })
 
     context = {
@@ -145,6 +156,7 @@ def validate_chain(request):
         "validation_results": validation_results,
     }
     return render(request, "validate_chain.html", context)
+
 
 
 
